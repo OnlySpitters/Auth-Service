@@ -25,10 +25,14 @@ public class TokenProvider {
 
         var now = new Date();
         var expiryDate = new Date(now.getTime() + appAuthConfig.getTokenExpiryInMs());
+        var idString = Long.toString(userPrincipal.getId());
+        var claims = Jwts.claims().setSubject(idString);
+        // can set more claims here...
 
         return Jwts.builder()
-                .setSubject(Long.toString(userPrincipal.getId()))
-                .setIssuedAt(new Date())
+                .setSubject(idString)
+                .setClaims(claims)
+                .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, appAuthConfig.getTokenSecret())
                 .compact();

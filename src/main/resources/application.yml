@@ -27,4 +27,4 @@ spring:
 app:
   auth:
     tokenSecret: N8XqoJA05WgtbMw4SnKeCxiB9g6K5DGJ
-    tokenExpiryInMs: 864000000
+    tokenExpiryInMs: 3600000

@@ -7,18 +7,29 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class UserPrincipal implements UserDetails {
+    @Getter
     private final Long id;
+    @Getter
+    private final String firstname;
+    @Getter
+    private final String lastname;
+    @Getter
     private final String email;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public UserPrincipal(Long id, String email, String password, Collection<? extends GrantedAuthority> authorities) {
+    public UserPrincipal(Long id, String firstname, String lastname, String email, String password,
+                         Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
+        this.firstname = firstname;
+        this.lastname = lastname;
         this.email = email;
         this.password = password;
         this.authorities = authorities;
@@ -28,6 +39,8 @@ public class UserPrincipal implements UserDetails {
         List<GrantedAuthority> authorities = getGrantedAuthorities(user.getRoles());
         return new UserPrincipal(
                 user.getId(),
+                user.getFirstname(),
+                user.getLastname(),
                 user.getEmail(),
                 user.getPassword(),
                 authorities
@@ -51,14 +64,6 @@ public class UserPrincipal implements UserDetails {
         allPrivileges.forEach(privilege -> authorities.add(new SimpleGrantedAuthority(privilege)));
 
         return authorities;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
     }
 
     @Override
@@ -94,6 +99,12 @@ public class UserPrincipal implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
+    }
+
+    public Set<String> getRoles() {
+        return getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet());
     }
 
 }
