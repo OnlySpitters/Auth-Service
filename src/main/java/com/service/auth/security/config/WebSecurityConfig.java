@@ -48,6 +48,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf()
                 .disable()
+                // for h2 ui be able to load in frame
                 .headers().frameOptions().disable().and()
                 .formLogin()
                 .disable()

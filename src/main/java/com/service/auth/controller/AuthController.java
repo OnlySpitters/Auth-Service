@@ -1,8 +1,10 @@
 package com.service.auth.controller;
 
+import com.service.auth.model.auth.JwtResponse;
+import com.service.auth.model.auth.SignInRequest;
+import com.service.auth.model.auth.SignUpRequest;
 import com.service.auth.model.common.MessageResponse;
-import com.service.auth.model.user.SignUpRequest;
-import com.service.auth.service.UserService;
+import com.service.auth.service.AuthService;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +18,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final UserService userService;
+    private final AuthService authService;
+
+    @PostMapping("/signin")
+    public ResponseEntity<JwtResponse> signin(@Valid @RequestBody SignInRequest signInRequest) {
+        return ResponseEntity.ok(authService.signin(signInRequest));
+    }
 
     @PostMapping("/signup")
     public ResponseEntity<MessageResponse> signUp(@Valid @RequestBody SignUpRequest signUpRequest) {
-        userService.signUp(signUpRequest);
+        authService.signUp(signUpRequest);
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 

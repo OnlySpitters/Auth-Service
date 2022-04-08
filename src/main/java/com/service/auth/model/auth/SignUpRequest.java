@@ -1,4 +1,4 @@
-package com.service.auth.model.user;
+package com.service.auth.model.auth;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
