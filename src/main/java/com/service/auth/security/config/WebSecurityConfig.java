@@ -40,24 +40,28 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .cors()
-                .and()
+        // Enable CORS and disable CSRF
+        http = http.cors().and().csrf().disable();
+
+        // Set session management to stateless
+        http = http
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .csrf()
-                .disable()
-                // for h2 ui be able to load in frame
-                .headers().frameOptions().disable().and()
-                .formLogin()
-                .disable()
-                .httpBasic()
-                .disable()
-                .exceptionHandling()
+                .and();
+
+        // for h2 ui be able to load in frame
+        http = http.headers().frameOptions().disable().and();
+
+        // basic form login disabled
+        http.formLogin().disable().httpBasic().disable();
+
+        // Set unauthorized requests exception handler
+        http = http.exceptionHandling()
                 .authenticationEntryPoint(new RestAuthenticationEntryPoint())
-                .and()
-                .authorizeRequests()
+                .and();
+
+        // Set permissions on endpoints
+        http.authorizeRequests()
                 .antMatchers("/",
                         "/error",
                         "/favicon.ico",
@@ -81,7 +85,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated();
 
         // Add our custom Token based authentication filter
-        http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(
+                authTokenFilter,
+                UsernamePasswordAuthenticationFilter.class
+        );
     }
 
     @Bean(BeanIds.AUTHENTICATION_MANAGER)

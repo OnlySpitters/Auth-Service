@@ -2,6 +2,7 @@ package com.service.auth.security;
 
 import com.service.auth.security.config.AppAuthConfig;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -20,36 +21,48 @@ public class TokenProvider {
 
     private final AppAuthConfig appAuthConfig;
 
-    public String createToken(Authentication authentication) {
+    public String createAccessToken(Authentication authentication) {
         var userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        return createAccessToken(userPrincipal.getId());
+    }
 
-        var now = new Date();
-        var expiryDate = new Date(now.getTime() + appAuthConfig.getTokenExpiryInMs());
-        var idString = Long.toString(userPrincipal.getId());
+    public String createRefreshToken(long id) {
+        return createBasicToken(Long.toString(id), appAuthConfig.getRefreshTokenExpiryInMs())
+                .signWith(SignatureAlgorithm.HS512, appAuthConfig.getRefreshTokenSecret())
+                .compact();
+    }
+
+    public String createAccessToken(long id) {
+        var idString = Long.toString(id);
         var claims = Jwts.claims().setSubject(idString);
         // can set more claims here...
 
-        return Jwts.builder()
-                .setSubject(idString)
+        return createBasicToken(idString, appAuthConfig.getTokenExpiryInMs())
                 .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, appAuthConfig.getTokenSecret())
                 .compact();
     }
 
-    public Long getUserIdFromToken(String token) {
+    public Long getUserIdFromToken(String token, String secret) {
         var claims = Jwts.parser()
-                .setSigningKey(appAuthConfig.getTokenSecret())
+                .setSigningKey(secret)
                 .parseClaimsJws(token)
                 .getBody();
 
         return Long.parseLong(claims.getSubject());
     }
 
-    public boolean validateToken(String authToken) {
+    public Long getUserIdFromAccessToken(String token) {
+        return getUserIdFromToken(token, appAuthConfig.getTokenSecret());
+    }
+
+    public Long getUserIdFromRefreshToken(String token) {
+        return getUserIdFromToken(token, appAuthConfig.getRefreshTokenSecret());
+    }
+
+    private boolean validateToken(String secret, String authToken) {
         try {
-            Jwts.parser().setSigningKey(appAuthConfig.getTokenSecret()).parseClaimsJws(authToken);
+            Jwts.parser().setSigningKey(secret).parseClaimsJws(authToken);
             return true;
         } catch (SignatureException ex) {
             log.error("Invalid JWT signature", ex);
@@ -63,6 +76,24 @@ public class TokenProvider {
             log.error("JWT claims string is empty.", ex);
         }
         return false;
+    }
+
+    private JwtBuilder createBasicToken(String id, long expiry) {
+        var now = new Date();
+        var expiryDate = new Date(now.getTime() + expiry);
+
+        return Jwts.builder()
+                .setSubject(id)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate);
+    }
+
+    public boolean validateAccessToken(String authToken) {
+        return validateToken(appAuthConfig.getTokenSecret(), authToken);
+    }
+
+    public boolean validateRefreshToken(String refreshAuthToken) {
+        return validateToken(appAuthConfig.getRefreshTokenSecret(), refreshAuthToken);
     }
 
 }

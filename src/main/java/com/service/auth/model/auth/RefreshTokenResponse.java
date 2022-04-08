@@ -1,17 +1,11 @@
 package com.service.auth.model.auth;
 
-import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-public class JwtResponse {
-	private Long id;
-	private String firstname;
-	private String lastname;
-	private String email;
-	private Set<String> roles;
+public class RefreshTokenResponse {
 	private String tokenType;
 	private String accessToken;
 	private String refreshToken;
