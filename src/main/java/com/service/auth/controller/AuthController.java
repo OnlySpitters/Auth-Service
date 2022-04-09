@@ -1,6 +1,8 @@
 package com.service.auth.controller;
 
 import com.service.auth.model.auth.JwtResponse;
+import com.service.auth.model.auth.RefreshTokenRequest;
+import com.service.auth.model.auth.RefreshTokenResponse;
 import com.service.auth.model.auth.SignInRequest;
 import com.service.auth.model.auth.SignUpRequest;
 import com.service.auth.model.common.MessageResponse;
@@ -20,15 +22,19 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/signin")
-    public ResponseEntity<JwtResponse> signin(@Valid @RequestBody SignInRequest signInRequest) {
-        return ResponseEntity.ok(authService.signin(signInRequest));
-    }
-
     @PostMapping("/signup")
     public ResponseEntity<MessageResponse> signUp(@Valid @RequestBody SignUpRequest signUpRequest) {
         authService.signUp(signUpRequest);
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 
+    @PostMapping("/signin")
+    public ResponseEntity<JwtResponse> signin(@Valid @RequestBody SignInRequest signInRequest) {
+        return ResponseEntity.ok(authService.signin(signInRequest));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshTokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+        return ResponseEntity.ok(authService.refresh(refreshTokenRequest));
+    }
 }

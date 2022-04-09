@@ -27,4 +27,8 @@ spring:
 app:
   auth:
     tokenSecret: N8XqoJA05WgtbMw4SnKeCxiB9g6K5DGJ
+    # 1 hour
     tokenExpiryInMs: 3600000
+    refreshTokenSecret: N8XqoJA05WgtbMw4SnKeCxiB9g6K5DGK
+    # 24 hours
+    refreshTokenExpiryInMs: 86400000

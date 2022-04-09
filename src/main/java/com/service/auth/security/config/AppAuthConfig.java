@@ -13,5 +13,7 @@ public class AppAuthConfig {
 
     private String tokenSecret;
     private long tokenExpiryInMs;
+    private String refreshTokenSecret;
+    private long refreshTokenExpiryInMs;
 
 }

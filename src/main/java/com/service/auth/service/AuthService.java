@@ -1,6 +1,9 @@
 package com.service.auth.service;
 
+import com.service.auth.exception.TokenRefreshException;
 import com.service.auth.model.auth.JwtResponse;
+import com.service.auth.model.auth.RefreshTokenRequest;
+import com.service.auth.model.auth.RefreshTokenResponse;
 import com.service.auth.model.auth.SignInRequest;
 import com.service.auth.model.auth.SignUpRequest;
 import com.service.auth.security.TokenProvider;
@@ -9,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,7 +19,6 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
 
@@ -30,7 +31,7 @@ public class AuthService {
         var authentication = authenticationManager.authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         var userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        var token = tokenProvider.createToken(authentication);
+        var token = tokenProvider.createAccessToken(authentication);
         return prepareJwtResponse(token, userPrincipal);
     }
 
@@ -43,7 +44,20 @@ public class AuthService {
                 .lastname(userPrincipal.getLastname())
                 .email(userPrincipal.getEmail())
                 .roles(userPrincipal.getRoles())
+                .refreshToken(tokenProvider.createRefreshToken(userPrincipal.getId()))
                 .build();
+    }
+
+    public RefreshTokenResponse refresh(RefreshTokenRequest refreshTokenRequest) {
+        if (tokenProvider.validateRefreshToken(refreshTokenRequest.getRefreshToken())) {
+            var id = tokenProvider.getUserIdFromRefreshToken(refreshTokenRequest.getRefreshToken());
+            return RefreshTokenResponse.builder()
+                    .accessToken(tokenProvider.createAccessToken(id))
+                    .refreshToken(tokenProvider.createRefreshToken(id))
+                    .tokenType("Bearer")
+                    .build();
+        }
+        throw new TokenRefreshException(refreshTokenRequest.getRefreshToken(), "Invalid refresh token");
     }
 
 }
